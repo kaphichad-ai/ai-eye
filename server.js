@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path'); // เพิ่ม path module เข้ามา
 const { GoogleGenAI } = require('@google/genai');
 require('dotenv').config();
 
@@ -9,6 +10,9 @@ const port = process.env.PORT || 3000;
 // ตั้งค่ารับส่งข้อมูลแบบ JSON และรองรับขนาดภาพใหญ่
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+
+// [เพิ่มส่วนนี้] กำหนดให้ Express เสิร์ฟไฟล์หน้าเว็บ (HTML, CSS, JS) จากโฟลเดอร์ปัจจุบัน
+app.use(express.static(path.join(__dirname)));
 
 // กำหนดค่า Google Gen AI SDK
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
