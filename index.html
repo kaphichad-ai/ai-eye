@@ -217,7 +217,6 @@
     // แปลงพิกัดหน้าจอ (Client Coordinates) ให้ตรงกับความละเอียดจริงของ Canvas เสมอ
     function getMousePos(e) {
         const rect = canvas.getBoundingClientRect();
-        // คำนวณสัดส่วนระหว่างขนาดที่แสดงผลบนจอจริง กับความละเอียดภายใน Canvas (500x500)
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
 
@@ -243,7 +242,7 @@
 
     function draw(e) {
         if (!painting || !isPlaying) return;
-        e.preventDefault(); // ป้องกันหน้าจอเลื่อนบนมือถือ
+        e.preventDefault();
 
         ctx.lineWidth = 8;
         ctx.lineCap = 'round';
@@ -257,7 +256,6 @@
         ctx.moveTo(pos.x, pos.y);
     }
 
-    // รองรับทั้ง Mouse และ Touch events แบบแม่นยำ
     canvas.addEventListener('mousedown', startPosition);
     canvas.addEventListener('mouseup', endPosition);
     canvas.addEventListener('mousemove', draw);
@@ -283,7 +281,8 @@
         document.getElementById("result").innerHTML = `<span class="spinner"></span>AI กำลังเพ่งมองรูปของคุณ...`;
 
         try {
-            const response = await fetch('http://localhost:3000/api/guess', {
+            // แก้ไขลิงก์เป็น Relative Path เพื่อให้รองรับทั้ง Local และ Vercel Production
+            const response = await fetch('/api/guess', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ image: dataURL, targetWord: currentWord })
