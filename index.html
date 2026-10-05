@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>👁️ AI Eye: เกมทายภาพวาด AI</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 15px;
+            box-sizing: border-box;
+            /* ป้องกันการลากหน้าจอไปมาบนมือถือขณะวาด */
+            overscroll-behavior: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #4f46e5;
+            margin: 0 0 5px 0;
+            font-weight: 800;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            background: #f3f4f6;
+            padding: 10px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .score-box span { color: #10b981; }
+        .timer-box span { color: #f59e0b; }
+
+        #word-card {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* ส่วนของ Canvas ที่ปรับขนาดตามหน้าจออัตโนมัติ */
+        .canvas-container {
+            width: 100%;
+            aspect-ratio: 1 / 1; /* รักษาอัตราส่วนสี่เหลี่ยมจัตุรัส 1:1 เสมอ */
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            border: 3px solid #cbd5e1;
+            border-radius: 16px;
+            cursor: crosshair;
+            background: #ffffff;
+            touch-action: none; /* ป้องกันมือถือเลื่อนจอตอนกำลังวาด */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            flex: 1;
+            font-family: 'Prompt', sans-serif;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button:active { transform: scale(0.96); }
+
+        .submit-btn { background: linear-gradient(135deg, #4f46e5, #6366f1); }
+        .clear-btn { background: linear-gradient(135deg, #ef4444, #f87171); }
+
+        #result {
+            margin-top: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            min-height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(79, 70, 229, 0.3);
+            border-radius: 50%;
+            border-top-color: #4f46e5;
+            animation: spin 0.8s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>👁️ AI Eye</h1>
+    <div class="subtitle">ศึกดวลลายเส้น ปะทะ สมองกล AI</div>
+    
+    <div class="game-info">
+        <div class="score-box">คะแนน: <span id="score">0</span></div>
+        <div class="timer-box">เวลา: <span id="timer">30</span>s</div>
+    </div>
+
+    <div id="word-card">โจทย์: กำลังโหลด...</div>
+    
+    <!-- Canvas Container สำหรับทำ Responsive -->
+    <div class="canvas-container">
+        <canvas id="paintCanvas"></canvas>
+    </div>
+    
+    <div class="controls">
+        <button class="clear-btn" onclick="clearCanvas()">ล้างกระดาน</button>
+        <button class="submit-btn" onclick="submitDrawing()">ส่งให้ AI ทาย</button>
+    </div>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    const canvas = document.getElementById('paintCanvas');
+    const ctx = canvas.getContext('2d');
+    let painting = false;
+    let score = 0;
+    let timeLeft = 30;
+    let timerInterval = null;
+    let isPlaying = true;
+
+    // ตั้งค่าความละเอียดภายใน Canvas ให้คมชัดไม่แตก (Resolution คงที่ 500x500 พิกเซล)
+    const CANVAS_SIZE = 500;
+    canvas.width = CANVAS_SIZE;
+    canvas.height = CANVAS_SIZE;
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const words = ["แมว", "บ้าน", "ดวงอาทิตย์", "รถยนต์", "ต้นไม้", "ปลา", "แอปเปิ้ล", "ไอศกรีม", "พระจันทร์"];
+    let currentWord = "";
+
+    function nextRound() {
+        currentWord = words[Math.floor(Math.random() * words.length)];
+        document.getElementById("word-card").innerHTML = `🎨 โจทย์ที่คุณต้องวาด: <b>${currentWord}</b>`;
+        clearCanvas();
+        resetTimer();
+    }
+
+    function resetTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 30;
+        document.getElementById("timer").innerText = timeLeft;
+        isPlaying = true;
+
+        timerInterval = setInterval(() => {
+            if (!isPlaying) return;
+            timeLeft--;
+            document.getElementById("timer").innerText = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById("result").style.color = "#ef4444";
+                document.getElementById("result").innerText = `⏰ หมดเวลา! โจทย์คือ "${currentWord}"`;
+                setTimeout(nextRound, 3000);
+            }
+        }, 1000);
+    }
+
+    // แปลงพิกัดหน้าจอ (Client Coordinates) ให้ตรงกับความละเอียดจริงของ Canvas เสมอ
+    function getMousePos(e) {
+        const rect = canvas.getBoundingClientRect();
+        // คำนวณสัดส่วนระหว่างขนาดที่แสดงผลบนจอจริง กับความละเอียดภายใน Canvas (500x500)
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
+    function startPosition(e) {
+        if (!isPlaying) return;
+        painting = true;
+        draw(e);
+    }
+
+    function endPosition() {
+        painting = false;
+        ctx.beginPath();
+    }
+
+    function draw(e) {
+        if (!painting || !isPlaying) return;
+        e.preventDefault(); // ป้องกันหน้าจอเลื่อนบนมือถือ
+
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#1f2937';
+
+        const pos = getMousePos(e);
+
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+    }
+
+    // รองรับทั้ง Mouse และ Touch events แบบแม่นยำ
+    canvas.addEventListener('mousedown', startPosition);
+    canvas.addEventListener('mouseup', endPosition);
+    canvas.addEventListener('mousemove', draw);
+
+    canvas.addEventListener('touchstart', startPosition, { passive: false });
+    canvas.addEventListener('touchend', endPosition);
+    canvas.addEventListener('touchmove', draw, { passive: false });
+
+    function clearCanvas() {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        document.getElementById("result").innerText = "";
+    }
+
+    async function submitDrawing() {
+        if (!isPlaying) return;
+        isPlaying = false;
+        clearInterval(timerInterval);
+
+        const dataURL = canvas.toDataURL('image/png');
+        
+        document.getElementById("result").style.color = "#4f46e5";
+        document.getElementById("result").innerHTML = `<span class="spinner"></span>AI กำลังเพ่งมองรูปของคุณ...`;
+
+        try {
+            const response = await fetch('http://localhost:3000/api/guess', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: dataURL, targetWord: currentWord })
+            });
+
+            const data = await response.json();
+            const aiGuess = data.guess || "";
+
+            if (aiGuess.includes(currentWord)) {
+                score += 10;
+                document.getElementById("score").innerText = score;
+                document.getElementById("result").style.color = "#10b981";
+                document.getElementById("result").innerText = `🎉 ถูกต้อง! AI ตาเพชรทายว่า "${aiGuess}" (+10 คะแนน)`;
+                setTimeout(nextRound, 3000);
+            } else {
+                document.getElementById("result").style.color = "#ef4444";
+                document.getElementById("result").innerText = `❌ ผิด! AI มองว่าเป็น "${aiGuess}" (โจทย์คือ ${currentWord})`;
+                setTimeout(nextRound, 3500);
+            }
+        } catch (error) {
+            isPlaying = true;
+            document.getElementById("result").style.color = "#ef4444";
+            document.getElementById("result").innerText = `⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์`;
+        }
+    }
+
+    nextRound();
+</script>
+
+</body>
+</html>
