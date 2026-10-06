@@ -1,316 +1,211 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>👁️ AI Eye: เกมทายภาพวาด AI</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;800&display=swap');
-
-        body {
-            font-family: 'Prompt', sans-serif;
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0;
-            padding: 15px;
-            box-sizing: border-box;
-            /* ป้องกันการลากหน้าจอไปมาบนมือถือขณะวาด */
-            overscroll-behavior: none;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 480px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            box-sizing: border-box;
-        }
-
-        h1 {
-            color: #4f46e5;
-            margin: 0 0 5px 0;
-            font-weight: 800;
-            font-size: 24px;
-        }
-
-        .subtitle {
-            color: #6b7280;
-            font-size: 13px;
-            margin-bottom: 15px;
-        }
-
-        .game-info {
-            display: flex;
-            justify-content: space-around;
-            background: #f3f4f6;
-            padding: 10px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            font-weight: 600;
-            color: #374151;
-            font-size: 14px;
-        }
-
-        .score-box span { color: #10b981; }
-        .timer-box span { color: #f59e0b; }
-
-        #word-card {
-            background: #e0e7ff;
-            color: #3730a3;
-            padding: 10px;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        /* ส่วนของ Canvas ที่ปรับขนาดตามหน้าจออัตโนมัติ */
-        .canvas-container {
-            width: 100%;
-            aspect-ratio: 1 / 1; /* รักษาอัตราส่วนสี่เหลี่ยมจัตุรัส 1:1 เสมอ */
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            border: 3px solid #cbd5e1;
-            border-radius: 16px;
-            cursor: crosshair;
-            background: #ffffff;
-            touch-action: none; /* ป้องกันมือถือเลื่อนจอตอนกำลังวาด */
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            box-sizing: border-box;
-        }
-
-        .controls {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        button {
-            flex: 1;
-            font-family: 'Prompt', sans-serif;
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        button:active { transform: scale(0.96); }
-
-        .submit-btn { background: linear-gradient(135deg, #4f46e5, #6366f1); }
-        .clear-btn { background: linear-gradient(135deg, #ef4444, #f87171); }
-
-        #result {
-            margin-top: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            min-height: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 3px solid rgba(79, 70, 229, 0.3);
-            border-radius: 50%;
-            border-top-color: #4f46e5;
-            animation: spin 0.8s ease-in-out infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>👁️ AI Eye: เกมทายภาพวาด AI</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;800&display=swap');
+:root{--ink:#1b1340;--violet:#6c4cff;--pink:#ff3d81;--sun:#ffd23f;--mint:#2de2a6;--paper:#fff}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:12px;font-family:'Prompt',sans-serif;color:var(--ink);overscroll-behavior:none;
+ background:radial-gradient(circle at 1px 1px,rgba(255,255,255,.14) 1.5px,transparent 0) 0 0/18px 18px,linear-gradient(160deg,#2a1b6e,#6c4cff 55%,#ff3d81)}
+.app{width:100%;max-width:480px}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+#eye{width:96px;flex:none;filter:drop-shadow(0 4px 0 rgba(0,0,0,.25))}
+.bubble{flex:1;background:var(--paper);border:3px solid var(--ink);border-radius:18px 18px 18px 4px;padding:8px 12px;font-weight:600;font-size:14px;line-height:1.35;min-height:62px;display:flex;align-items:center;box-shadow:0 4px 0 var(--ink)}
+.hud{display:flex;gap:8px;margin-bottom:8px}
+.pill{flex:1;background:rgba(255,255,255,.18);color:#fff;border-radius:12px;padding:6px 4px;text-align:center;font-weight:600;font-size:13px}
+.pill b{display:block;font-size:20px;font-weight:800;color:var(--sun);line-height:1.1}
+.word{background:var(--sun);border:3px solid var(--ink);border-radius:14px;padding:8px;text-align:center;font-size:20px;font-weight:800;box-shadow:0 4px 0 var(--ink);margin-bottom:10px}
+.bar{height:10px;background:rgba(0,0,0,.3);border-radius:6px;overflow:hidden;margin-bottom:10px}
+#fill{height:100%;width:100%;background:var(--mint);transition:background .3s}
+.stage{position:relative;width:100%;aspect-ratio:1/1;transform:rotate(-.6deg)}
+canvas#c{width:100%;height:100%;display:block;background:#fff;border:4px solid var(--ink);border-radius:16px;box-shadow:0 6px 0 var(--ink);touch-action:none;cursor:crosshair}
+.stage.shake{animation:shake .45s}
+@keyframes shake{20%{transform:translateX(-9px) rotate(-1deg)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.tools{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap;margin:12px 0 10px}
+.sw{width:30px;height:30px;border-radius:50%;border:3px solid #fff;cursor:pointer;padding:0;box-shadow:0 2px 0 rgba(0,0,0,.3)}
+.sw.on{border-color:var(--ink);transform:scale(1.18)}
+.tb{background:#fff;border:3px solid transparent;border-radius:10px;height:34px;min-width:34px;cursor:pointer;font-size:16px;padding:0 6px;display:flex;align-items:center;justify-content:center}
+.tb.on{border-color:var(--ink);background:var(--sun)}
+.tb i{display:block;background:var(--ink);border-radius:50%}
+.row{display:flex;gap:8px}
+.btn{flex:1;font-family:inherit;font-weight:800;font-size:16px;border:3px solid var(--ink);border-radius:14px;padding:11px 6px;cursor:pointer;color:var(--ink);box-shadow:0 4px 0 var(--ink);transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translateY(4px);box-shadow:0 0 0 var(--ink)}
+.btn:disabled{opacity:.5;pointer-events:none}
+.go{background:var(--mint);flex:2}.clr{background:#fff}.skip{background:var(--sun)}
+.ov{position:absolute;inset:0;background:rgba(27,19,64,.93);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;text-align:center;padding:20px;border:4px solid var(--ink)}
+.ov[hidden]{display:none}
+.ov h2{margin:0;font-size:26px;font-weight:800;color:var(--sun)}
+.ov p{margin:0;font-size:14px;opacity:.9}
+.big{font-size:54px;font-weight:800;color:var(--sun);line-height:1}
+.ov .btn{flex:none;padding:12px 28px;background:var(--pink);color:#fff;margin-top:6px}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:9}
+.sp{display:inline-block;width:14px;height:14px;border:3px solid rgba(27,19,64,.25);border-top-color:var(--violet);border-radius:50%;animation:s .7s linear infinite;margin-right:6px;vertical-align:-2px}
+@keyframes s{to{transform:rotate(360deg)}}
+#lid{transform-origin:60px 8px;transform:scaleY(0);transition:transform .08s}
+#lid.b{transform:scaleY(1)}
+@media (prefers-reduced-motion:reduce){.stage.shake{animation:none}}
+</style>
 </head>
 <body>
-
-<div class="container">
-    <h1>👁️ AI Eye</h1>
-    <div class="subtitle">ศึกดวลลายเส้น ปะทะ สมองกล AI</div>
-    
-    <div class="game-info">
-        <div class="score-box">คะแนน: <span id="score">0</span></div>
-        <div class="timer-box">เวลา: <span id="timer">30</span>s</div>
+<canvas id="fx"></canvas>
+<div class="app">
+  <div class="top">
+    <svg id="eye" viewBox="0 0 120 80" aria-hidden="true">
+      <defs><clipPath id="cl"><ellipse cx="60" cy="40" rx="52" ry="32"/></clipPath></defs>
+      <ellipse cx="60" cy="40" rx="52" ry="32" fill="#fff" stroke="#1b1340" stroke-width="5"/>
+      <g clip-path="url(#cl)">
+        <g id="iris"><circle id="irisC" r="21" cx="60" cy="40" fill="#6c4cff"/><circle id="pup" r="10" cx="60" cy="40" fill="#1b1340"/><circle r="4" cx="54" cy="34" fill="#fff"/></g>
+        <rect id="lid" x="0" y="8" width="120" height="64" fill="#1b1340"/>
+      </g>
+    </svg>
+    <div class="bubble" id="say">วาดอะไรก็ได้ ตาเพชรจะทายให้!</div>
+  </div>
+  <div class="hud">
+    <div class="pill">รอบ<b><span id="rnd">0</span>/5</b></div>
+    <div class="pill">คะแนน<b id="score">0</b></div>
+    <div class="pill">คอมโบ<b id="combo">x0</b></div>
+    <div class="pill">เวลา<b id="timer">40</b></div>
+  </div>
+  <div class="word" id="word">กดเริ่มเล่นเลย</div>
+  <div class="bar"><div id="fill"></div></div>
+  <div class="stage" id="stage">
+    <canvas id="c"></canvas>
+    <div class="ov" id="ov">
+      <h2 id="ovT">👁️ AI Eye</h2>
+      <p id="ovP">วาดตามโจทย์ใน 40 วินาที 5 รอบ<br>ยิ่งวาดเร็วและทายถูกติดกัน ยิ่งได้คะแนนเยอะ</p>
+      <div class="big" id="ovB" hidden></div>
+      <p id="ovS"></p>
+      <button class="btn" id="ovBtn">เริ่มเล่น</button>
     </div>
-
-    <div id="word-card">โจทย์: กำลังโหลด...</div>
-    
-    <!-- Canvas Container สำหรับทำ Responsive -->
-    <div class="canvas-container">
-        <canvas id="paintCanvas"></canvas>
-    </div>
-    
-    <div class="controls">
-        <button class="clear-btn" onclick="clearCanvas()">ล้างกระดาน</button>
-        <button class="submit-btn" onclick="submitDrawing()">ส่งให้ AI ทาย</button>
-    </div>
-
-    <div id="result"></div>
+  </div>
+  <div class="tools" id="tools"></div>
+  <div class="row">
+    <button class="btn clr" id="bClr">ล้างกระดาน</button>
+    <button class="btn skip" id="bSkip">ข้าม</button>
+    <button class="btn go" id="bGo">ส่งให้ AI ทาย</button>
+  </div>
 </div>
-
 <script>
-    const canvas = document.getElementById('paintCanvas');
-    const ctx = canvas.getContext('2d');
-    let painting = false;
-    let score = 0;
-    let timeLeft = 30;
-    let timerInterval = null;
-    let isPlaying = true;
+const $=id=>document.getElementById(id);
+const canvas=$('c'),ctx=canvas.getContext('2d');
+canvas.width=canvas.height=500;
+const TOTAL=5,TIME=40;
+const WORDS=[["แมว","🐱","cat"],["บ้าน","🏠","house"],["ดวงอาทิตย์","☀️","sun"],["รถยนต์","🚗","car"],["ต้นไม้","🌳","tree"],["ปลา","🐟","fish"],["แอปเปิ้ล","🍎","apple"],["ไอศกรีม","🍦","ice cream"],["พระจันทร์","🌙","moon"],["ดอกไม้","🌸","flower"],["หัวใจ","❤️","heart"],["เรือ","⛵","boat"],["ร่ม","☂️","umbrella"],["นาฬิกา","⏰","clock"],["กล้วย","🍌","banana"],["เก้าอี้","🪑","chair"],["แว่นตา","👓","glasses"],["จักรยาน","🚲","bicycle"],["เครื่องบิน","✈️","airplane"],["ช้าง","🐘","elephant"],["งู","🐍","snake"],["ปู","🦀","crab"],["นก","🐦","bird"],["หมวก","🎩","hat"],["รองเท้า","👟","shoe"],["กีตาร์","🎸","guitar"],["พิซซ่า","🍕","pizza"],["ภูเขา","⛰️","mountain"],["ปราสาท","🏰","castle"],["จรวด","🚀","rocket"]];
+const Q={ok:["เห็นแล้ว! ตาเพชรไม่พลาดหรอก 😎","ง่ายมาก ลายเส้นคุณชัดเจน!","ว้าว ศิลปินตัวจริง 🎨","ถูกเผงเลย ใครสอนวาด?"],
+ no:["อืม... ตาเพชรเห็นเป็นอย่างอื่นนะ 🤔","เส้นคุณสร้างสรรค์เกินไปหน่อย 😅","ลองวาดให้เหมือนกว่านี้อีกนิดนะ","ตาลายแล้ว ช่วยไม่ได้จริง ๆ"],
+ judge:["เพ่งมองอยู่... 🔍","ขอหรี่ตาดูก่อนนะ","นี่มัน... อืมมม","กำลังตีความงานศิลป์..."],
+ blank:["กระดานว่างเปล่า! ตาเพชรเห็นแต่สีขาว 🥶","วาดอะไรหน่อยสิ แล้วค่อยส่ง"],
+ time:["หมดเวลา! ⏰ ช้าไปนิดนะ","เวลาหมดแล้ว ปากกาลงได้"]};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+let st={phase:'idle',round:0,score:0,combo:0,word:null,left:TIME,endAt:0,iv:null,used:[],ink:false,color:'#1b1340',size:8,eraser:false,undo:[]};
+let best=0;try{best=+localStorage.getItem('aieye_best')||0}catch(e){}
+const say=(t,h)=>{h?$('say').innerHTML=t:$('say').textContent=t};
 
-    // ตั้งค่าความละเอียดภายใน Canvas ให้คมชัดไม่แตก (Resolution คงที่ 500x500 พิกเซล)
-    const CANVAS_SIZE = 500;
-    canvas.width = CANVAS_SIZE;
-    canvas.height = CANVAS_SIZE;
+/* ---------- sound ---------- */
+let AC=null,mute=false;
+function tone(fs,d=.12){if(mute)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();fs.forEach((f,i)=>{const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(.15,AC.currentTime+i*d);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+i*d+d);o.connect(g);g.connect(AC.destination);o.start(AC.currentTime+i*d);o.stop(AC.currentTime+i*d+d)})}catch(e){}}
 
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+/* ---------- eye ---------- */
+const eye={x:0,y:0};
+function look(nx,ny){eye.x=nx*14;eye.y=ny*8;$('iris').setAttribute('transform',`translate(${eye.x} ${eye.y})`)}
+function mood(c){$('irisC').setAttribute('fill',c)}
+setInterval(()=>{$('lid').classList.add('b');setTimeout(()=>$('lid').classList.remove('b'),120)},3200);
+setInterval(()=>{if(st.phase!=='draw')look(Math.random()*2-1,Math.random()*2-1)},1800);
 
-    const words = ["แมว", "บ้าน", "ดวงอาทิตย์", "รถยนต์", "ต้นไม้", "ปลา", "แอปเปิ้ล", "ไอศกรีม", "พระจันทร์"];
-    let currentWord = "";
+/* ---------- canvas drawing ---------- */
+function blank(){ctx.fillStyle='#fff';ctx.fillRect(0,0,500,500);st.ink=false}
+function pos(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*500/r.width,y:(e.clientY-r.top)*500/r.height}}
+let last=null;
+canvas.addEventListener('pointerdown',e=>{if(st.phase!=='draw')return;e.preventDefault();canvas.setPointerCapture(e.pointerId);
+ st.undo.push(ctx.getImageData(0,0,500,500));if(st.undo.length>15)st.undo.shift();
+ last=pos(e);dot(last);st.ink=true});
+canvas.addEventListener('pointermove',e=>{const p=pos(e);look((p.x-250)/250,(p.y-250)/250);if(!last||st.phase!=='draw')return;e.preventDefault();stroke(last,p);last=p});
+['pointerup','pointercancel'].forEach(n=>canvas.addEventListener(n,()=>{last=null}));
+function setPen(){ctx.lineCap=ctx.lineJoin='round';ctx.strokeStyle=ctx.fillStyle=st.eraser?'#fff':st.color;ctx.lineWidth=st.eraser?st.size*2.5:st.size}
+function dot(p){setPen();ctx.beginPath();ctx.arc(p.x,p.y,ctx.lineWidth/2,0,7);ctx.fill()}
+function stroke(a,b){setPen();ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}
 
-    function nextRound() {
-        currentWord = words[Math.floor(Math.random() * words.length)];
-        document.getElementById("word-card").innerHTML = `🎨 โจทย์ที่คุณต้องวาด: <b>${currentWord}</b>`;
-        clearCanvas();
-        resetTimer();
-    }
+/* ---------- tools ---------- */
+const COLORS=['#1b1340','#ff3d81','#ff8a00','#ffc400','#19b36b','#2f7bff','#8a3dff','#7a4a21'];
+const tools=$('tools');
+COLORS.forEach((c,i)=>{const b=document.createElement('button');b.className='sw'+(i?'':' on');b.style.background=c;b.setAttribute('aria-label','สี '+c);
+ b.onclick=()=>{st.color=c;st.eraser=false;sync()};tools.appendChild(b)});
+[4,8,16].forEach((s,i)=>{const b=document.createElement('button');b.className='tb sz'+(i==1?' on':'');b.dataset.s=s;b.innerHTML=`<i style="width:${6+i*5}px;height:${6+i*5}px"></i>`;b.setAttribute('aria-label','ขนาดเส้น');b.onclick=()=>{st.size=s;sync()};tools.appendChild(b)});
+const er=document.createElement('button');er.className='tb';er.textContent='🧽';er.setAttribute('aria-label','ยางลบ');er.onclick=()=>{st.eraser=!st.eraser;sync()};tools.appendChild(er);
+const un=document.createElement('button');un.className='tb';un.textContent='↩️';un.setAttribute('aria-label','ย้อนกลับ');un.onclick=()=>{if(st.phase!=='draw'||!st.undo.length)return;ctx.putImageData(st.undo.pop(),0,0);if(!st.undo.length)st.ink=false};tools.appendChild(un);
+const mu=document.createElement('button');mu.className='tb';mu.textContent='🔊';mu.setAttribute('aria-label','เปิด/ปิดเสียง');mu.onclick=()=>{mute=!mute;mu.textContent=mute?'🔇':'🔊'};tools.appendChild(mu);
+function sync(){[...tools.querySelectorAll('.sw')].forEach((b,i)=>b.classList.toggle('on',!st.eraser&&COLORS[i]===st.color));
+ tools.querySelectorAll('.sz').forEach(b=>b.classList.toggle('on',+b.dataset.s===st.size));er.classList.toggle('on',st.eraser)}
 
-    function resetTimer() {
-        clearInterval(timerInterval);
-        timeLeft = 30;
-        document.getElementById("timer").innerText = timeLeft;
-        isPlaying = true;
+/* ---------- game flow ---------- */
+function hud(){$('rnd').textContent=st.round;$('score').textContent=st.score;$('combo').textContent='x'+st.combo;$('timer').textContent=Math.ceil(st.left)}
+function setBtns(on){['bGo','bSkip','bClr'].forEach(i=>$(i).disabled=!on)}
+function newRound(){
+ if(st.round>=TOTAL)return endGame();
+ let pool=WORDS.filter(w=>!st.used.includes(w[0]));st.word=pick(pool);st.used.push(st.word[0]);st.round++;
+ $('word').innerHTML=`${st.word[1]} วาด: <span style="font-size:24px">${st.word[0]}</span>`;
+ blank();st.undo=[];st.phase='draw';st.left=TIME;mood('#6c4cff');say('ตาเพชรพร้อมแล้ว วาดเลย!');setBtns(true);hud();runTimer()}
+function runTimer(){clearInterval(st.iv);st.endAt=Date.now()+st.left*1000;
+ st.iv=setInterval(()=>{st.left=Math.max(0,(st.endAt-Date.now())/1000);hud();
+  const f=st.left/TIME;$('fill').style.width=f*100+'%';$('fill').style.background=f>.5?'var(--mint)':f>.25?'var(--sun)':'var(--pink)';
+  if(st.left<=5&&Math.ceil(st.left)!==st._tk){st._tk=Math.ceil(st.left);tone([880],.06)}
+  if(st.left<=0){clearInterval(st.iv);reveal(false,true)}},100)}
+function norm(s){return String(s||'').toLowerCase().replace(/\s+/g,'')}
+function match(g){const n=norm(g);return n.includes(norm(st.word[0]))||n.includes(norm(st.word[2]))}
+async function submit(){
+ if(st.phase!=='draw')return;
+ if(!st.ink){say(pick(Q.blank));return}
+ st.phase='judging';clearInterval(st.iv);setBtns(false);mood('#ffd23f');look(0,0);
+ say(`<span class="sp"></span>${pick(Q.judge)}`,true);
+ try{
+  const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),25000);
+  const r=await fetch('/api/guess',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify({image:canvas.toDataURL('image/png'),targetWord:st.word[0]})});
+  clearTimeout(t);const d=await r.json();
+  if(!r.ok||d.error)throw new Error(d.error||'bad');
+  reveal(match(d.guess||''),false,d.guess||'ไม่รู้');
+ }catch(e){
+  st.phase='draw';setBtns(true);mood('#6c4cff');say('⚠️ เชื่อมต่อ AI ไม่ได้ ลองกดส่งอีกครั้งนะ');runTimer()}}
+function reveal(ok,timeout,guess){
+ st.phase='reveal';setBtns(false);clearInterval(st.iv);
+ if(ok){st.combo++;const pts=100+Math.round(st.left*3)+(st.combo-1)*25;st.score+=pts;mood('#2de2a6');
+  say(`${pick(Q.ok)}<br>ตาเพชรทายว่า <b>"${guess}"</b> · <b>+${pts}</b> คะแนน${st.combo>1?' · คอมโบ 🔥x'+st.combo:''}`,true);
+  tone([523,659,784,1047]);boom()}
+ else{st.combo=0;mood('#ff3d81');$('stage').classList.remove('shake');void $('stage').offsetWidth;$('stage').classList.add('shake');
+  say(timeout||guess==='ข้ามโจทย์'?`${timeout?pick(Q.time):'ข้ามก็ได้ ไม่ว่ากัน 😜'}<br>โจทย์คือ <b>${st.word[0]}</b>`:`${pick(Q.no)}<br>AI เห็นเป็น <b>"${guess}"</b> (โจทย์: ${st.word[0]})`,true);tone([330,247],.18)}
+ hud();
+ $('ovT').textContent=ok?'ถูกต้อง! 🎉':timeout?'หมดเวลา ⏰':'พลาดไป 😵';
+ $('ovP').textContent=ok?'วาดได้เยี่ยมมาก':'ไม่เป็นไร รอบหน้าเอาใหม่';
+ $('ovB').hidden=true;$('ovS').textContent='';
+ setTimeout(()=>{if(st.phase!=='reveal')return;showOv(st.round>=TOTAL?'ดูผลรวม':'รอบต่อไป',()=>{hideOv();newRound()})},1400)}
+function rank(s){return s>=1300?['🏆','ปิกัสโซ่แห่งยุค']:s>=900?['🎨','ศิลปินมือทอง']:s>=500?['✏️','นักวาดฝีมือดี']:s>0?['🖍️','ศิลปินหน้าใหม่']:['🫥','ลายเส้นปริศนา']}
+function endGame(){
+ st.phase='end';const nb=st.score>best;if(nb){best=st.score;try{localStorage.setItem('aieye_best',best)}catch(e){}}
+ const r=rank(st.score);$('word').textContent='จบเกมแล้ว';mood('#6c4cff');say(nb&&st.score>0?'สถิติใหม่! 🎊 ตาเพชรขอคารวะ':'จบเกมแล้ว เล่นอีกรอบไหม?');
+ $('ovT').textContent=`${r[0]} ${r[1]}`;$('ovP').textContent='คะแนนรวมของคุณ';$('ovB').hidden=false;$('ovB').textContent=st.score;
+ $('ovS').textContent=`สถิติสูงสุด ${best}${nb&&st.score>0?' (ใหม่!)':''}`;
+ if(st.score>0)boom();
+ showOv('เล่นอีกรอบ',startGame);setBtns(false)}
+function showOv(label,fn){$('ovBtn').textContent=label;$('ovBtn').onclick=fn;$('ov').hidden=false}
+function hideOv(){$('ov').hidden=true}
+function startGame(){hideOv();Object.assign(st,{round:0,score:0,combo:0,used:[]});newRound()}
+function skip(){if(st.phase!=='draw')return;clearInterval(st.iv);st.combo=0;st.left=0;reveal(false,false,'ข้ามโจทย์')}
 
-        timerInterval = setInterval(() => {
-            if (!isPlaying) return;
-            timeLeft--;
-            document.getElementById("timer").innerText = timeLeft;
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                document.getElementById("result").style.color = "#ef4444";
-                document.getElementById("result").innerText = `⏰ หมดเวลา! โจทย์คือ "${currentWord}"`;
-                setTimeout(nextRound, 3000);
-            }
-        }, 1000);
-    }
+$('bGo').onclick=submit;$('bClr').onclick=()=>{if(st.phase==='draw'){st.undo.push(ctx.getImageData(0,0,500,500));blank();st.ink=false}};$('bSkip').onclick=skip;
+$('ovS').textContent=best?`สถิติสูงสุด ${best}`:'';
+showOv('เริ่มเล่น',startGame);blank();setBtns(false);hud();
 
-    // แปลงพิกัดหน้าจอ (Client Coordinates) ให้ตรงกับความละเอียดจริงของ Canvas เสมอ
-    function getMousePos(e) {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-
-        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-
-        return {
-            x: (clientX - rect.left) * scaleX,
-            y: (clientY - rect.top) * scaleY
-        };
-    }
-
-    function startPosition(e) {
-        if (!isPlaying) return;
-        painting = true;
-        draw(e);
-    }
-
-    function endPosition() {
-        painting = false;
-        ctx.beginPath();
-    }
-
-    function draw(e) {
-        if (!painting || !isPlaying) return;
-        e.preventDefault();
-
-        ctx.lineWidth = 8;
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#1f2937';
-
-        const pos = getMousePos(e);
-
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-    }
-
-    canvas.addEventListener('mousedown', startPosition);
-    canvas.addEventListener('mouseup', endPosition);
-    canvas.addEventListener('mousemove', draw);
-
-    canvas.addEventListener('touchstart', startPosition, { passive: false });
-    canvas.addEventListener('touchend', endPosition);
-    canvas.addEventListener('touchmove', draw, { passive: false });
-
-    function clearCanvas() {
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        document.getElementById("result").innerText = "";
-    }
-
-    async function submitDrawing() {
-        if (!isPlaying) return;
-        isPlaying = false;
-        clearInterval(timerInterval);
-
-        const dataURL = canvas.toDataURL('image/png');
-        
-        document.getElementById("result").style.color = "#4f46e5";
-        document.getElementById("result").innerHTML = `<span class="spinner"></span>AI กำลังเพ่งมองรูปของคุณ...`;
-
-        try {
-            // แก้ไขลิงก์เป็น Relative Path เพื่อให้รองรับทั้ง Local และ Vercel Production
-            const response = await fetch('/api/guess', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: dataURL, targetWord: currentWord })
-            });
-
-            const data = await response.json();
-            const aiGuess = data.guess || "";
-
-            if (aiGuess.includes(currentWord)) {
-                score += 10;
-                document.getElementById("score").innerText = score;
-                document.getElementById("result").style.color = "#10b981";
-                document.getElementById("result").innerText = `🎉 ถูกต้อง! AI ตาเพชรทายว่า "${aiGuess}" (+10 คะแนน)`;
-                setTimeout(nextRound, 3000);
-            } else {
-                document.getElementById("result").style.color = "#ef4444";
-                document.getElementById("result").innerText = `❌ ผิด! AI มองว่าเป็น "${aiGuess}" (โจทย์คือ ${currentWord})`;
-                setTimeout(nextRound, 3500);
-            }
-        } catch (error) {
-            isPlaying = true;
-            document.getElementById("result").style.color = "#ef4444";
-            document.getElementById("result").innerText = `⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์`;
-        }
-    }
-
-    nextRound();
+/* ---------- confetti ---------- */
+const fx=$('fx'),fc=fx.getContext('2d');let ps=[],raf=0;
+function fit(){fx.width=innerWidth;fx.height=innerHeight}fit();addEventListener('resize',fit);
+function boom(){if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+ for(let i=0;i<90;i++)ps.push({x:innerWidth/2,y:innerHeight*.4,vx:(Math.random()-.5)*14,vy:-Math.random()*13-3,c:COLORS[i%8]==='#1b1340'?'#fff':COLORS[i%8],s:6+Math.random()*6,r:Math.random()*6,l:90});
+ if(!raf)raf=requestAnimationFrame(tick)}
+function tick(){fc.clearRect(0,0,fx.width,fx.height);ps=ps.filter(p=>p.l>0);
+ ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.4;p.r+=.2;p.l--;fc.save();fc.globalAlpha=Math.min(1,p.l/30);fc.translate(p.x,p.y);fc.rotate(p.r);fc.fillStyle=p.c;fc.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);fc.restore()});
+ raf=ps.length?requestAnimationFrame(tick):0}
 </script>
-
 </body>
 </html>
